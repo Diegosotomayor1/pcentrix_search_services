@@ -1,36 +1,22 @@
 import { useRef, useState } from 'react'
-
-const services = [
-  {
-    title: 'Mantenimiento',
-    tags: ['Limpieza', 'Cambio de pasta térmica', 'cableado']
-  },
-  {
-    title: 'Mantenimiento pc gama baja',
-    tags: ['Gama baja', 'Cambio de pasta térmica', 'Limpieza']
-  },
-  {
-    title: 'Mantenimiento gráfica',
-    tags: ['Limpieza', 'Limpieza de grafica', 'cableado', 'gpu']
-  }
-]
+import { useDispatch, useSelector } from 'react-redux'
+import { SearchServices } from '../features/servicesSlice'
 
 const InputSearch = () => {
+  const dispatch = useDispatch()
+  const servicios = useSelector(state => state.data.services)
   const results = useRef()
-  const [SearchValue, setSearchValue] = useState()
-  const [Results, setResults] = useState([])
-  const SearchService = e => {
-    const searchValue = e.target.value.toLowerCase()
-    setSearchValue(searchValue)
-    const keyworks = services.filter(
-      service =>
-        service.title.toLowerCase().includes(searchValue) ||
-        service.tags.find(tag => tag.toLowerCase().includes(searchValue))
-    )
-    setResults(keyworks)
+  const MaxLenghtKeywords = 5
+  const ResultsScreen = (results) => {
+    const keywordsScreen = []
+    results.forEach((keyword, index) => {
+      if(index < MaxLenghtKeywords) keywordsScreen.push(keyword)
+    })
+    return keywordsScreen
+
   }
-  const ChangeInputService = e => {
-    SearchService(e)
+  const ChangeInputService = async e => {
+    await dispatch(SearchServices(e.target.value))
     const resultsClass = results.current.classList
     if (e.target.value === '') return resultsClass.add('hidden')
     results.current.classList.remove('hidden')
@@ -48,8 +34,8 @@ const InputSearch = () => {
         className='absolute hidden flex flex-col justify-center z-10 bg-slate-100 p-2 rounded-xl px-4 w-full top-12 results'
         ref={results}
       >
-        <p className='text-xs'>Se está buscando: {SearchValue}</p>
-        {Results.map(result => (
+{/*         <p className='text-xs'>Se está buscando: {SearchValue}</p>
+ */}        {(ResultsScreen(servicios)).map(result => (
           <div
             key={result.title}
             className='flex flex-row justify-between items-center border-b-[1px] border-gray-300 py-2 cursor-pointer hover:bg-gray-200'
@@ -57,7 +43,7 @@ const InputSearch = () => {
             <p>{result.title}</p>
             <div className='flex justify-end gap-2'>
               {result.tags.map(tag => (
-                <span className='bg-gray-300 px-2 py-1 text-sm' key={tag}>
+                <span className='bg-gray-300 px-2 py-1 text-xs rounded-md' key={tag}>
                   {tag}
                 </span>
               ))}
